@@ -294,10 +294,10 @@ function showFinal() {
   document.getElementById('res-score').textContent = `${score}/10`;
   const ratio = score / 10;
   document.getElementById('res-msg').textContent =
-    ratio === 1    ? 'Izcili! Tu esi ģeogrāfijas eksperts! 🏆' :
-    ratio >= 0.8   ? 'Ļoti labi! 🌟' :
-    ratio >= 0.5   ? 'Nav slikti, turpini mācīties! 🙂' :
-                     'Mēģini vēlreiz! 📚';
+    ratio === 1    ? 'Izcili! Tu esi ģeogrāfijas eksperts! ' :
+    ratio >= 0.8   ? 'Ļoti labi! ' :
+    ratio >= 0.5   ? 'Nav slikti, turpini mācīties! ' :
+                     'Mēģini vēlreiz! ';
 }
 
 // ── Palīgi ────────────────────────────────────────────────────
