@@ -1,12 +1,174 @@
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=fakti.html" />
-    <title>Pāradresācija...</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ģeo Portāls | Sākums</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --gold: #c8a96e; --bg: #0b0c10; --card: #111418; --text: #e8e6df; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'DM Sans', sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      min-height: 100vh; 
+      display: flex; 
+      flex-direction: column;
+      margin: 0;
+    }
+
+    /* Navigācija augšā */
+    nav { background: var(--card); padding: 1.2rem; text-align: center; border-bottom: 1px solid #232931; }
+    nav a { text-decoration: none; font-weight: bold; margin: 0 15px; color: #8892b0; transition: 0.3s; font-family: 'DM Sans', sans-serif; }
+    nav a:hover { color: #fff; }
+    .nav-active { color: var(--gold) !important; border-bottom: 2px solid var(--gold); padding-bottom: 5px; }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      align-items: center;
+      padding: 0 1rem 5rem; 
+    }
+
+    .hero {
+      max-width: 800px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .hero h1 { 
+      font-family: 'Playfair Display', serif; 
+      font-size: clamp(2.8rem, 8vw, 4.5rem); 
+      margin-bottom: 1rem;
+      color: #f0ebe0;
+    }
+
+    .hero p { 
+      color: #8892b0; 
+      font-size: 1.2rem; 
+      max-width: 600px; 
+      margin: 0 auto 3rem; 
+    }
+
+    /* Search Bar */
+    .search-container {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-container input {
+      flex: 1;
+      padding: 1.2rem 1.5rem;
+      border-radius: 15px;
+      border: 1px solid #232931;
+      background: var(--card);
+      color: #fff;
+      font-size: 1.1rem;
+      outline: none;
+      transition: 0.3s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .search-container input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(200, 169, 110, 0.1);
+    }
+
+    .search-container button {
+      padding: 0 2rem;
+      border-radius: 15px;
+      border: none;
+      background: var(--gold);
+      color: #0b0c10;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .search-container button:hover {
+      transform: translateY(-2px);
+      background: #d9bc85;
+    }
+
+    .footer {
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #64748b;
+      border-top: 1px solid #232931;
+    }
+
+    @media (max-width: 500px) {
+      .search-container { flex-direction: column; }
+      .search-container button { padding: 1.2rem; }
+    }
+  </style>
 </head>
-<body style="background: #0b0c10; color: white; font-family: sans-serif; text-align: center; padding-top: 50px;">
-    <p>Pārejam uz Kārļa Ģeo Faktiem...</p>
-    <script>window.location.href = "fakti.html";</script>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-active">Sākums</a>
+  <a href="quiz.html">Ģeo Tests</a>
+  <a href="fakti.html">Ģeo Fakti</a>
+</nav>
+
+<main class="main-content">
+  <div class="hero">
+    <h1>Kārļa Ģeo Fakti</h1>
+    <p>Atklāj pasauli caur faktiem vai pārbaudi savas zināšanas aizraujošā testā.</p>
+
+    <div class="search-container">
+      <input type="text" id="mainSearch" placeholder="Ievadi valsti (piem. Latvija)..." list="countries" autocomplete="off">
+      <datalist id="countries"></datalist>
+      <button onclick="performSearch()">Meklēt</button>
+    </div>
+  </div>
+</main>
+
+<div class="footer">
+  &copy; 2024 Kārļa Ģeo Portāls.
+</div>
+
+<script>
+  // Rezerves saraksts, ja API ielāde neizdodas
+  const backupNames = ["Latvija", "Igaunija", "Lietuva", "Vācija", "Francija", "Japāna", "ASV", "Brazīlija", "Austrālija", "Kanāda"];
+
+  async function initSearch() {
+    const list = document.getElementById('countries');
+    try {
+      const res = await fetch('https://restcountries.com/v3.1/all?fields=name,translations');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const names = data.map(c => c.translations.lav ? c.translations.lav.common : c.name.common).sort();
+      list.innerHTML = names.map(n => `<option value="${n}">`).join('');
+    } catch(e) { 
+      // Ja API nestrādā, lietojam backup sarakstu
+      list.innerHTML = backupNames.map(n => `<option value="${n}">`).join('');
+    }
+  }
+  initSearch();
+
+  // Meklēšana: novirza uz fakti.html ar parametru ?search=...
+  function performSearch() {
+    const val = document.getElementById('mainSearch').value.trim();
+    if (val) {
+      // SVARĪGI: Šī rinda savieno šo lapu ar fakti.html
+      window.location.href = `fakti.html?search=${encodeURIComponent(val)}`;
+    }
+  }
+
+  // Enter taustiņa atbalsts
+  document.getElementById('mainSearch').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch();
+  });
+</script>
+
 </body>
 </html>

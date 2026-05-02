@@ -11,8 +11,9 @@
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; }
     
     nav { background: var(--card); padding: 1.2rem; text-align: center; border-bottom: 1px solid #232931; }
-    nav a { text-decoration: none; font-weight: bold; margin: 0 15px; color: #8892b0; }
+    nav a { text-decoration: none; font-weight: bold; margin: 0 15px; color: #8892b0; transition: 0.3s; }
     .nav-active { color: var(--gold) !important; border-bottom: 2px solid var(--gold); padding-bottom: 5px; }
+    nav a:hover { color: #fff; }
 
     .container { max-width: 650px; margin: 2rem auto; padding: 0 1rem; text-align: center; }
     header h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 0.5rem; }
@@ -54,8 +55,9 @@
 <body>
 
 <nav>
-  <a href="#">Ģeo Fakti</a>
-  <a href="#" class="nav-active">Ģeo Tests</a>
+  <a href="index.html">Sākums</a>
+  <a href="quiz.html" class="nav-active">Ģeo Tests</a>
+  <a href="fakti.html">Ģeo Fakti</a>
 </nav>
 
 <div class="container">
@@ -111,14 +113,10 @@ const backupCountries = [
 
 let allCountries = [];
 let target = null;
-// Katram jautājumam glabājam {q, type, answer, displayAnswer}
-// answer   = salīdzinājuma vērtība (nemainās)
-// displayAnswer = formatētā teksta versija (tikai pop jautājumam)
 let questions = [];
 let qIndex = 0;
 let score = 0;
 
-// ── Ielāde ────────────────────────────────────────────────────
 async function init() {
   const timer = setTimeout(() => {
     if (allCountries.length === 0) useBackup();
@@ -140,7 +138,6 @@ function useBackup() {
   shuffleCountry();
 }
 
-// ── Valsts izvēle ─────────────────────────────────────────────
 function shuffleCountry() {
   const valid = allCountries.filter(c => c.capital?.length > 0);
   target = valid[Math.floor(Math.random() * valid.length)];
@@ -149,7 +146,6 @@ function shuffleCountry() {
     target.translations?.lav?.common || target.name.common;
 }
 
-// ── Testa sākums ──────────────────────────────────────────────
 function startQuiz() {
   score = 0;
   qIndex = 0;
@@ -161,7 +157,6 @@ function startQuiz() {
   const popRaw = target.population;
   const popFmt = popRaw.toLocaleString('lv-LV');
 
-  // Katram jautājumam: answer = salīdzināšanas vērtība (string)
   questions = [
     { type:'flag', q:`Kurš ir ${name} valsts karogs?`,               answer: target.flags.png },
     { type:'cap',  q:`Kura ir ${name} galvaspilsēta?`,               answer: target.capital[0] },
@@ -179,7 +174,6 @@ function startQuiz() {
   showQuestion();
 }
 
-// ── Jautājuma parādīšana ──────────────────────────────────────
 function showQuestion() {
   const q = questions[qIndex];
   document.getElementById('q-idx').textContent  = qIndex + 1;
@@ -201,7 +195,6 @@ function showQuestion() {
       img.src = choice;
       img.alt = 'Karogs';
       btn.appendChild(img);
-      // Saglabājam URL kā data atribūtu, nevis textContent
       btn.dataset.value = choice;
     } else {
       btn.textContent = choice;
@@ -213,7 +206,6 @@ function showQuestion() {
   });
 }
 
-// ── Atbilžu ģenerēšana ────────────────────────────────────────
 function generateChoices(q) {
   if (q.type === 'bool') return shuffle(['Jā', 'Nē']);
   if (q.type === 'side') return shuffle(['Labajā pusē', 'Kreisajā pusē']);
@@ -226,60 +218,29 @@ function generateChoices(q) {
     const r = allCountries[Math.floor(Math.random() * allCountries.length)];
     let val = null;
 
-    if (q.type === 'flag') {
-      val = r.flags?.png;
-    } else if (q.type === 'cap') {
-      val = r.capital?.[0];
-    } else if (q.type === 'reg') {
-      val = translateRegion(r.region);
-    } else if (q.type === 'cur') {
-      val = r.currencies ? Object.values(r.currencies)[0].name : null;
-    } else if (q.type === 'lang') {
-      val = r.languages ? Object.values(r.languages)[0] : null;
-    } else if (q.type === 'pop') {
-      // Ģenerē citu iedzīvotāju skaitu (formatētu tāpat kā answer)
-      const fake = Math.floor(q.rawPop * (0.2 + Math.random() * 3));
-      val = fake.toLocaleString('lv-LV');
-    } else if (q.type === 'idd') {
-      const root = r.idd?.root;
-      const suf  = r.idd?.suffixes?.[0];
-      val = root && suf ? root + suf : null;
-    } else if (q.type === 'sub') {
-      val = r.subregion || translateRegion(r.region);
-    }
+    if (q.type === 'flag') val = r.flags?.png;
+    else if (q.type === 'cap') val = r.capital?.[0];
+    else if (q.type === 'reg') val = translateRegion(r.region);
+    else if (q.type === 'cur') val = r.currencies ? Object.values(r.currencies)[0].name : null;
+    else if (q.type === 'lang') val = r.languages ? Object.values(r.languages)[0] : null;
+    else if (q.type === 'pop') val = Math.floor(q.rawPop * (0.2 + Math.random() * 3)).toLocaleString('lv-LV');
+    else if (q.type === 'idd') val = (r.idd?.root || '') + (r.idd?.suffixes?.[0] || '');
+    else if (q.type === 'sub') val = r.subregion || translateRegion(r.region);
 
-    if (val && String(val).trim() !== '' && val !== 'undefined') {
-      set.add(String(val));
-    }
+    if (val && String(val).trim() !== '' && val !== 'undefined') set.add(String(val));
   }
-
-  // Papildini ar fallback ja nepietiek
-  const fallbacks = ['Nav datu', 'Nezināms', 'Cits reģions', 'Nav'];
-  for (const fb of fallbacks) {
-    if (set.size >= 4) break;
-    set.add(fb);
-  }
-
   return shuffle([...set]).slice(0, 4);
 }
 
-// ── Atbildes apstrāde ─────────────────────────────────────────
 function handleAnswer(clickedBtn, q) {
   const selected = clickedBtn.dataset.value;
   const correct  = q.answer;
-
   document.querySelectorAll('.option-btn').forEach(b => {
     b.disabled = true;
-    // Iezīmē pareizo atbildi
     if (b.dataset.value === correct) b.classList.add('correct');
   });
-
-  if (selected === correct) {
-    score++;
-  } else {
-    clickedBtn.classList.add('wrong');
-  }
-
+  if (selected === correct) score++;
+  else clickedBtn.classList.add('wrong');
   setTimeout(() => {
     qIndex++;
     if (qIndex < questions.length) showQuestion();
@@ -287,20 +248,13 @@ function handleAnswer(clickedBtn, q) {
   }, 1100);
 }
 
-// ── Rezultāti ─────────────────────────────────────────────────
 function showFinal() {
   show('result-screen');
   document.getElementById('progress').style.width = '100%';
   document.getElementById('res-score').textContent = `${score}/10`;
-  const ratio = score / 10;
-  document.getElementById('res-msg').textContent =
-    ratio === 1    ? 'Izcili! Tu esi ģeogrāfijas eksperts! ' :
-    ratio >= 0.8   ? 'Ļoti labi! ' :
-    ratio >= 0.5   ? 'Nav slikti, turpini mācīties! ' :
-                     'Mēģini vēlreiz! ';
+  document.getElementById('res-msg').textContent = score >= 8 ? 'Lieliski! 🏆' : score >= 5 ? 'Labi! 🙂' : 'Mēģini vēlreiz! 📚';
 }
 
-// ── Palīgi ────────────────────────────────────────────────────
 function show(id) {
   ['loader-box','start-screen','quiz-content','result-screen'].forEach(s => {
     document.getElementById(s).style.display = s === id ? 'block' : 'none';
@@ -312,7 +266,6 @@ function translateRegion(r) {
 }
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-
 init();
 </script>
 </body>
