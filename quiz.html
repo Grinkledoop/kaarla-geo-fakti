@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ģeogrāfijas Viktorīna</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #0b0c10; color: #e8e6df; min-height: 100vh; }
+    
+    nav { background: #111418; padding: 1.2rem; text-align: center; border-bottom: 1px solid #232931; }
+    nav a { text-decoration: none; font-weight: bold; margin: 0 15px; transition: 0.3s; font-family: 'DM Sans', sans-serif; }
+    .nav-active { color: #c8a96e; border-bottom: 2px solid #c8a96e; padding-bottom: 5px; }
+    .nav-link { color: #8892b0; }
+    .nav-link:hover { color: #fff; }
+
+    .container { max-width: 600px; margin: 3rem auto; padding: 0 1rem; text-align: center; }
+    header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #f0ebe0; margin-bottom: 1rem; }
+    
+    .quiz-card { background: #111418; border: 1px solid #232931; padding: 2.5rem; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .flag-img { width: 100%; max-width: 280px; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #232931; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    .question { font-size: 1.3rem; margin-bottom: 1.5rem; color: #fff; }
+    
+    .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .option-btn { padding: 1.1rem; background: #1c2128; border: 1px solid #30363d; border-radius: 12px; color: #fff; cursor: pointer; font-size: 1.05rem; transition: 0.2s; font-family: 'DM Sans', sans-serif; }
+    .option-btn:hover { border-color: #c8a96e; background: #232931; transform: translateY(-2px); }
+    
+    .score-board { margin-top: 2rem; color: #c8a96e; font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; }
+    #feedback { margin-top: 1rem; height: 1.5rem; font-weight: 600; font-size: 1.1rem; }
+    
+    .loader { border: 4px solid #1c2128; border-top: 4px solid #c8a96e; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 50px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="fakti.html" class="nav-link">Ģeo Fakti</a>
+  <a href="quiz.html" class="nav-active">Ģeogrāfijas Viktorīna</a>
+</nav>
+
+<div class="container">
+  <header>
+    <h1>Viktorīna</h1>
+  </header>
+
+  <div class="quiz-card" id="quiz-card">
+    <div id="loader" class="loader"></div>
+    <div id="quiz-content" style="display:none;">
+      <img id="flag-display" class="flag-img" src="" alt="Karogs">
+      <p class="question">Kurai valstij pieder šis karogs?</p>
+      <div class="options-grid" id="options"></div>
+      <div id="feedback"></div>
+      <div class="score-board">PUNKTI: <span id="score">0</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allCountries = [];
+let score = 0;
+
+async function initQuiz() {
+  try {
+    const res = await fetch('https://restcountries.com/v3.1/all?fields=name,translations,flags');
+    allCountries = await res.json();
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('quiz-content').style.display = 'block';
+    nextQuestion();
+  } catch(e) { 
+    console.error(e);
+    document.getElementById('loader').textContent = "Kļūda ielādējot datus.";
+  }
+}
+
+function nextQuestion() {
+  const feedback = document.getElementById('feedback');
+  feedback.textContent = "";
+  
+  const correctCountry = allCountries[Math.floor(Math.random() * allCountries.length)];
+  const nameLat = correctCountry.translations.lav ? correctCountry.translations.lav.common : correctCountry.name.common;
+  
+  document.getElementById('flag-display').src = correctCountry.flags.svg;
+  
+  let options = [nameLat];
+  while(options.length < 4) {
+    let r = allCountries[Math.floor(Math.random() * allCountries.length)];
+    let rName = r.translations.lav ? r.translations.lav.common : r.name.common;
+    if(!options.includes(rName)) options.push(rName);
+  }
+  options.sort(() => Math.random() - 0.5);
+  
+  const optionsDiv = document.getElementById('options');
+  optionsDiv.innerHTML = "";
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(opt, nameLat);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(selected, correct) {
+  const feedback = document.getElementById('feedback');
+  const buttons = document.querySelectorAll('.option-btn');
+  
+  // Atspējot pogas pēc izvēles
+  buttons.forEach(b => b.disabled = true);
+
+  if(selected === correct) {
+    score++;
+    feedback.style.color = "#4ade80";
+    feedback.textContent = "Pareizi! 🇱🇻";
+    document.getElementById('score').textContent = score;
+    setTimeout(nextQuestion, 1200);
+  } else {
+    feedback.style.color = "#f87171";
+    feedback.textContent = `Nē, tā bija ${correct}`;
+    setTimeout(nextQuestion, 1800);
+  }
+}
+
+initQuiz();
+</script>
+</body>
+</html>

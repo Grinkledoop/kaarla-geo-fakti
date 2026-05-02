@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kārļa Ģeo Fakti</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* Navigation Bar Style */
+    nav { background: #111418; padding: 1.2rem; text-align: center; border-bottom: 1px solid #232931; position: sticky; top: 0; z-index: 100; }
+    nav a { text-decoration: none; font-weight: bold; margin: 0 15px; font-family: 'DM Sans', sans-serif; transition: 0.3s; }
+    .nav-active { color: #c8a96e; border-bottom: 2px solid #c8a96e; padding-bottom: 5px; }
+    .nav-link { color: #8892b0; }
+    .nav-link:hover { color: #fff; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #0b0c10; color: #e8e6df; min-height: 100vh; padding: 0; }
+    
+    .content-wrapper { padding: 2rem 1rem 4rem; }
+    header { text-align: center; margin-bottom: 3rem; margin-top: 2rem; }
+    header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 6vw, 3.8rem); color: #f0ebe0; letter-spacing: -1px; }
+    header p { color: #8892b0; margin-top: 0.5rem; font-size: 1.1rem; font-weight: 400; }
+
+    .search-row { display: flex; gap: 12px; max-width: 600px; margin: 0 auto 3rem; position: relative; }
+    .search-row input { flex: 1; padding: 1rem 1.4rem; border-radius: 12px; border: 1px solid #232931; background: #111418; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 1.1rem; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .search-row input:focus { border-color: #c8a96e; box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.2); }
+    .search-row button { padding: 0 1.8rem; border-radius: 12px; border: none; background: #c8a96e; color: #0b0c10; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .search-row button:hover { background: #d9bc85; transform: translateY(-1px); }
+
+    #message { text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 2rem; height: 1.5rem; }
+    #card { display: none; max-width: 1000px; margin: 0 auto; background: #111418; border: 1px solid #232931; border-radius: 24px; overflow: hidden; animation: slideUp 0.5s ease-out; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-main { display: grid; grid-template-columns: 380px 1fr; }
+    .info-pane { padding: 2.5rem; border-right: 1px solid #232931; display: flex; flex-direction: column; gap: 1.5rem; }
+    .flag-box { width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); border: 1px solid #232931; }
+    .flag-box img { width: 100%; display: block; object-fit: cover; aspect-ratio: 3/2; }
+    .country-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
+    .region-tag { display: inline-block; padding: 4px 12px; background: rgba(200, 169, 110, 0.1); color: #c8a96e; border: 1px solid rgba(200, 169, 110, 0.2); border-radius: 100px; font-size: 0.85rem; font-weight: 500; }
+    .map-pane { position: relative; background: #0b0c10; min-height: 400px; }
+    .map-pane iframe { width: 100%; height: 100%; border: none; filter: grayscale(0.2) contrast(1.1); }
+    .wiki-summary { padding: 2rem 2.5rem; background: #161b22; border-bottom: 1px solid #232931; line-height: 1.7; color: #b1b8c0; font-size: 1.05rem; }
+    .wiki-summary strong { color: #c8a96e; font-weight: 500; display: block; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); background: #111418; }
+    .stat-item { padding: 1.5rem 2.5rem; border-right: 1px solid #232931; border-bottom: 1px solid #232931; }
+    .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 6px; }
+    .stat-value { color: #e2e8f0; font-weight: 500; font-size: 1rem; }
+    .neighbor-pane { padding: 2rem 2.5rem; }
+    .neighbor-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .neighbor-btn { padding: 6px 16px; background: #1c2128; border: 1px solid #30363d; border-radius: 8px; color: #adbac7; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .neighbor-btn:hover { border-color: #c8a96e; color: #fff; }
+
+    @media (max-width: 900px) {
+      .card-main { grid-template-columns: 1fr; }
+      .info-pane { border-right: none; border-bottom: 1px solid #232931; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .map-pane { min-height: 350px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="fakti.html" class="nav-active">Ģeo Fakti</a>
+  <a href="quiz.html" class="nav-link">Ģeogrāfijas Viktorīna</a>
+</nav>
+
+<div class="content-wrapper">
+    <header>
+      <h1>Kārļa Ģeo Fakti</h1>
+      <p>Meklē jebkuru valsti, lai izpētītu tās ģeogrāfiju un vēsturi</p>
+    </header>
+
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Ievadi valsts nosaukumu..." autofocus list="countrySuggestions" />
+      <datalist id="countrySuggestions"></datalist>
+      <button onclick="searchCountry()">Meklēt</button>
+    </div>
+
+    <div id="message"></div>
+    <div id="card"></div>
+</div>
+
+<script>
+const input = document.getElementById('searchInput');
+const msg = document.getElementById('message');
+const card = document.getElementById('card');
+const suggestions = document.getElementById('countrySuggestions');
+
+async function initAutocomplete() {
+  try {
+    const res = await fetch('https://restcountries.com/v3.1/all?fields=name,translations');
+    const data = await res.json();
+    const names = data.map(c => c.translations.lav ? c.translations.lav.common : c.name.common).sort();
+    suggestions.innerHTML = names.map(n => `<option value="${n}">`).join('');
+  } catch(e) { console.error("Autocomplete error", e); }
+}
+initAutocomplete();
+
+input.addEventListener('keydown', e => { if (e.key === 'Enter') searchCountry(); });
+
+async function translateToLatvian(text) {
+  if (!text || text.length < 3) return text;
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=lv&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    return json[0].map(s => s[0]).join('');
+  } catch (e) { return text; }
+}
+
+async function searchCountry(name) {
+  const query = (name || input.value).trim();
+  if (!query) return;
+  msg.textContent = `Meklējam datus par ${query}...`;
+  card.style.opacity = '0.5';
+
+  try {
+    const countryRes = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}`);
+    if (!countryRes.ok) throw new Error('Valsts nav atrasta');
+    const countryData = await countryRes.json();
+    
+    // Mēģinām atrast precīzu sakritību latviski vai angliski
+    const c = countryData.find(v => 
+      (v.translations.lav && v.translations.lav.common.toLowerCase() === query.toLowerCase()) || 
+      v.name.common.toLowerCase() === query.toLowerCase()
+    ) || countryData[0];
+
+    const latvianName = c.translations.lav ? c.translations.lav.common : c.name.common;
+    let fact = "";
+    
+    try {
+      const wikiRes = await fetch(`https://lv.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(latvianName)}`);
+      const wikiData = await wikiRes.json();
+      if (wikiData.extract) {
+        fact = wikiData.extract;
+      } else {
+        const wikiEnRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(c.name.common)}`);
+        const wikiEnData = await wikiEnRes.json();
+        fact = await translateToLatvian(wikiEnData.extract || "Informācija nav pieejama.");
+      }
+    } catch (e) { fact = "Kļūda ielādējot aprakstu no Wikipedia."; }
+
+    const currencyRaw = Object.values(c.currencies || {})[0]?.name || 'Nav datu';
+    const currencyLat = await translateToLatvian(currencyRaw);
+    renderCard(c, fact, currencyLat);
+  } catch (err) {
+    msg.textContent = `Mēs nevarējām atrast "${query}". Lūdzu, pārbaudiet pareizrakstību.`;
+    card.style.display = 'none';
+  }
+}
+
+function getZoom(area) {
+  if (!area) return 5;
+  if (area < 70000) return 7;
+  if (area < 1500000) return 5;
+  return 3;
+}
+
+async function renderCard(c, fact, currencyLat) {
+  const nameLat = c.translations.lav ? c.translations.lav.common : c.name.common;
+  const zoom = getZoom(c.area);
+  let neighbors = [];
+  if (c.borders && c.borders.length > 0) {
+    try {
+        const nRes = await fetch(`https://restcountries.com/v3.1/alpha?codes=${c.borders.join(',')}&fields=translations,name`);
+        const nData = await nRes.json();
+        neighbors = nData.map(cn => cn.translations.lav ? cn.translations.lav.common : cn.name.common);
+    } catch(e) {}
+  }
+
+  card.innerHTML = `
+    <div class="card-main">
+      <div class="info-pane">
+        <div class="flag-box"><img src="${c.flags.svg}" alt="${nameLat}"></div>
+        <div class="country-header"><h2>${nameLat}</h2><span class="region-tag">${c.subregion || c.region}</span></div>
+      </div>
+      <div class="map-pane"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(c.name.common)}&z=${zoom}&t=m&output=embed"></iframe></div>
+    </div>
+    <div class="wiki-summary"><strong>Kultūras un vēstures konteksts</strong>${fact}</div>
+    <div class="stats-grid">
+      <div class="stat-item"><div class="stat-label">Galvaspilsēta</div><div class="stat-value">${c.capital ? c.capital[0] : 'Nav'}</div></div>
+      <div class="stat-item"><div class="stat-label">Iedzīvotāji</div><div class="stat-value">${c.population.toLocaleString('lv-LV')}</div></div>
+      <div class="stat-item"><div class="stat-label">Valūta</div><div class="stat-value">${currencyLat}</div></div>
+      <div class="stat-item"><div class="stat-label">Platība</div><div class="stat-value">${c.area.toLocaleString('lv-LV')} km²</div></div>
+    </div>
+    <div class="neighbor-pane"><div class="stat-label">Robežvalstis</div><div class="neighbor-list">
+      ${neighbors.length > 0 ? neighbors.map(n => `<button class="neighbor-btn" onclick="searchCountry('${n}')">${n}</button>`).join('') : 'Nav robežvalstu'}
+    </div></div>`;
+  msg.textContent = '';
+  card.style.display = 'block'; card.style.opacity = '1';
+}
+</script>
+</body>
+</html>
