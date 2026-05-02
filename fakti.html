@@ -41,10 +41,13 @@
     .map-pane iframe { width: 100%; height: 100%; border: none; filter: grayscale(0.2) contrast(1.1); }
     .wiki-summary { padding: 2rem 2.5rem; background: #161b22; border-bottom: 1px solid #232931; line-height: 1.7; color: #b1b8c0; font-size: 1.05rem; }
     .wiki-summary strong { color: #c8a96e; font-weight: 500; display: block; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); background: #111418; }
+    
+    /* Uzlabots Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); background: #111418; }
     .stat-item { padding: 1.5rem 2.5rem; border-right: 1px solid #232931; border-bottom: 1px solid #232931; }
     .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 6px; }
     .stat-value { color: #e2e8f0; font-weight: 500; font-size: 1rem; }
+    
     .neighbor-pane { padding: 2rem 2.5rem; }
     .neighbor-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .neighbor-btn { padding: 6px 16px; background: #1c2128; border: 1px solid #30363d; border-radius: 8px; color: #adbac7; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
@@ -61,8 +64,8 @@
 <body>
 
 <nav>
-  <a href="fakti.html" class="nav-active">Ģeo Fakti</a>
-  <a href="quiz.html" class="nav-link">Ģeogrāfijas Viktorīna</a>
+  <a href="#" class="nav-active">Ģeo Fakti</a>
+  <a href="#" class="nav-link">Ģeogrāfijas Viktorīna</a>
 </nav>
 
 <div class="content-wrapper">
@@ -120,7 +123,6 @@ async function searchCountry(name) {
     if (!countryRes.ok) throw new Error('Valsts nav atrasta');
     const countryData = await countryRes.json();
     
-    // Mēģinām atrast precīzu sakritību latviski vai angliski
     const c = countryData.find(v => 
       (v.translations.lav && v.translations.lav.common.toLowerCase() === query.toLowerCase()) || 
       v.name.common.toLowerCase() === query.toLowerCase()
@@ -160,6 +162,14 @@ function getZoom(area) {
 async function renderCard(c, fact, currencyLat) {
   const nameLat = c.translations.lav ? c.translations.lav.common : c.name.common;
   const zoom = getZoom(c.area);
+  
+  // Papildu dati
+  const languages = c.languages ? Object.values(c.languages).join(', ') : 'Nav datu';
+  const timezone = c.timezones ? c.timezones[0] : 'Nav datu';
+  const driveSide = c.car.side === 'right' ? 'Labā' : 'Kreisā';
+  const callingCode = (c.idd.root || '') + (c.idd.suffixes ? c.idd.suffixes[0] : '');
+  const unMember = c.unMember ? 'Jā' : 'Nē';
+
   let neighbors = [];
   if (c.borders && c.borders.length > 0) {
     try {
@@ -173,7 +183,11 @@ async function renderCard(c, fact, currencyLat) {
     <div class="card-main">
       <div class="info-pane">
         <div class="flag-box"><img src="${c.flags.svg}" alt="${nameLat}"></div>
-        <div class="country-header"><h2>${nameLat}</h2><span class="region-tag">${c.subregion || c.region}</span></div>
+        <div class="country-header">
+            <h2>${nameLat}</h2>
+            <span class="region-tag">${c.subregion || c.region}</span>
+            <div style="margin-top:10px; font-size: 0.9rem; color:#8892b0;">Domēns: ${c.tld ? c.tld[0] : '-'}</div>
+        </div>
       </div>
       <div class="map-pane"><iframe src="https://www.google.com/maps?q=${encodeURIComponent(c.name.common)}&z=${zoom}&t=m&output=embed"></iframe></div>
     </div>
@@ -183,12 +197,20 @@ async function renderCard(c, fact, currencyLat) {
       <div class="stat-item"><div class="stat-label">Iedzīvotāji</div><div class="stat-value">${c.population.toLocaleString('lv-LV')}</div></div>
       <div class="stat-item"><div class="stat-label">Valūta</div><div class="stat-value">${currencyLat}</div></div>
       <div class="stat-item"><div class="stat-label">Platība</div><div class="stat-value">${c.area.toLocaleString('lv-LV')} km²</div></div>
+      
+      <div class="stat-item"><div class="stat-label">Valodas</div><div class="stat-value">${languages}</div></div>
+      <div class="stat-item"><div class="stat-label">Laika zona</div><div class="stat-value">${timezone}</div></div>
+      <div class="stat-item"><div class="stat-label">Braukšanas puse</div><div class="stat-value">${driveSide}</div></div>
+      <div class="stat-item"><div class="stat-label">Tālruņa kods</div><div class="stat-value">${callingCode}</div></div>
+      <div class="stat-item"><div class="stat-label">ANO dalībvalsts</div><div class="stat-value">${unMember}</div></div>
     </div>
     <div class="neighbor-pane"><div class="stat-label">Robežvalstis</div><div class="neighbor-list">
       ${neighbors.length > 0 ? neighbors.map(n => `<button class="neighbor-btn" onclick="searchCountry('${n}')">${n}</button>`).join('') : 'Nav robežvalstu'}
     </div></div>`;
+    
   msg.textContent = '';
-  card.style.display = 'block'; card.style.opacity = '1';
+  card.style.display = 'block'; 
+  card.style.opacity = '1';
 }
 </script>
 </body>
